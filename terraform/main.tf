@@ -172,9 +172,10 @@ resource "aws_instance" "flask" {
               git clone ${var.git_repo} app
               cd app
               pip3 install -r requirements.txt
-              sed -i 's|your-rds-endpoint|${aws_db_instance.mysql.address}|' app.py
-              sed -i 's|admin|${var.db_username}|' app.py
-              sed -i 's|yourpassword|${var.db_password}|' app.py
+              export DB_HOST=${aws_db_instance.mysql.address}
+              export DB_USER=${var.db_username}
+              export DB_PASS=${var.db_password}
+              export DB_NAME=mydb
               nohup python3 app.py &
               EOT
 

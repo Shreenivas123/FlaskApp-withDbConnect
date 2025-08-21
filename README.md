@@ -61,11 +61,16 @@ cd <your-repo>
 # Install dependencies
 pip3 install -r requirements.txt
 
-# Edit RDS credentials in app.py
-nano app.py
+# Set database credentials
+export DB_HOST="your-rds-endpoint"
+export DB_USER="admin"
+export DB_PASS="yourpassword"
+export DB_NAME="mydb"
 ```
 
 ## Running the App
+
+Ensure `DB_HOST`, `DB_USER`, `DB_PASS`, and `DB_NAME` are set in your shell or stored in a `.env` file before launching.
 
 ```bash
 # Foreground
@@ -81,11 +86,12 @@ Visit `http://<EC2_PUBLIC_IP>:5000` in your browser.
 
 ## Example DB Configuration
 
-```python
-DB_HOST = "your-rds-endpoint"
-DB_USER = "admin"
-DB_PASS = "yourpassword"
-DB_NAME = "mydb"
+```bash
+# .env or shell exports
+DB_HOST="your-rds-endpoint"
+DB_USER="admin"
+DB_PASS="yourpassword"
+DB_NAME="mydb"
 ```
 
 ## Docker (optional)
@@ -96,5 +102,16 @@ Build a multi-stage image:
 docker build -t multibuildflask \
   -f multistagedocker/Dockerfile \
   .
+```
+
+Run the container with database variables:
+
+```bash
+docker run -p 5000:5000 \
+  -e DB_HOST="your-rds-endpoint" \
+  -e DB_USER="admin" \
+  -e DB_PASS="yourpassword" \
+  -e DB_NAME="mydb" \
+  multibuildflask
 ```
 
