@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, flash
 import pymysql
 
 app = Flask(__name__)
+app.secret_key = "replace-with-secure-secret"
 
 # Update with your RDS DB details
 DB_HOST = "your-rds-endpoint"
@@ -10,12 +11,17 @@ DB_PASS = "yourpassword"
 DB_NAME = "mydb"
 
 def get_connection():
-    return pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    try:
+        return pymysql.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+    except Exception:
+        app.logger.exception("Database connection failed")
+        flash("Database connection failed. Please try again later.", "error")
+        return None
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -25,20 +31,36 @@ def index():
         place = request.form["place"]
 
         conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO users (username, phone, place) VALUES (%s, %s, %s)",
-                    (username, phone, place))
-        conn.commit()
-        cur.close()
-        conn.close()
+        if not conn:
+            return redirect("/")
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO users (username, phone, place) VALUES (%s, %s, %s)",
+                    (username, phone, place),
+                )
+            conn.commit()
+        except Exception:
+            app.logger.exception("Failed to insert user")
+            flash("Unable to save your details. Please try again later.", "error")
+        finally:
+            conn.close()
         return redirect("/")
 
+    rows = []
     conn = get_connection()
-    cur = conn.cursor(pymysql.cursors.DictCursor)
-    cur.execute("SELECT id, username, phone, place FROM users ORDER BY id DESC")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
+    if conn:
+        try:
+            with conn.cursor(pymysql.cursors.DictCursor) as cur:
+                cur.execute(
+                    "SELECT id, username, phone, place FROM users ORDER BY id DESC"
+                )
+                rows = cur.fetchall()
+        except Exception:
+            app.logger.exception("Failed to fetch users")
+            flash("Unable to load user data.", "error")
+        finally:
+            conn.close()
     return render_template("form.html", rows=rows)
 
 if __name__ == "__main__":
