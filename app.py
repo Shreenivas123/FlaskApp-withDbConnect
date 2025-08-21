@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, redirect
+import os
 import pymysql
 
 app = Flask(__name__)
 
 # Update with your RDS DB details
-DB_HOST = "your-rds-endpoint"
-DB_USER = "admin"
-DB_PASS = "yourpassword"
-DB_NAME = "mydb"
+DB_HOST = os.getenv("DB_HOST")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_NAME = os.getenv("DB_NAME")
 
 def get_connection():
     return pymysql.connect(

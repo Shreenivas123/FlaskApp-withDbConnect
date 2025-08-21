@@ -18,5 +18,11 @@ EXPOSE 5000
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
+# Database connection parameters (override at runtime)
+ENV DB_HOST=""
+ENV DB_USER=""
+ENV DB_PASS=""
+ENV DB_NAME=""
+
 # Run the Flask app
 CMD ["flask", "run"]
